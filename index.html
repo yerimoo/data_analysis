@@ -183,13 +183,13 @@ textarea.reflect:focus{outline:2px solid #c4b5fd; border-color:#7c3aed;}
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-3 leading-tight">데이터 분석 프로젝트</h1>
         <p class="text-primary-100 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl">
           내가 고른 데이터로 문제 정의부터 모델 평가까지, 데이터 과학의 전 과정을
-          이 페이지 하나에서 직접 진행해 봅니다. 군집분석(k-Means)을 포함한
+          이 페이지 하나에서 직접 진행해 봅니다. 회귀·군집·연관분석을 오가며
           실제 계산이 브라우저 안에서 그대로 실행됩니다.
         </p>
         <div class="flex flex-wrap gap-3 text-sm">
           <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-bullseye text-primary-300"></i><span>문제 정의</span></div>
           <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-table text-primary-300"></i><span>데이터 수집</span></div>
-          <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-object-group text-primary-300"></i><span>k-Means 군집분석</span></div>
+          <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-object-group text-primary-300"></i><span>회귀 · 군집 · 연관분석</span></div>
         </div>
       </div>
       <div class="hidden md:block flex-shrink-0 hero-icon-wrap" aria-hidden="true">
@@ -387,12 +387,21 @@ textarea.reflect:focus{outline:2px solid #c4b5fd; border-color:#7c3aed;}
       <p class="text-gray-700 text-sm mb-2">예측하고 싶은 <b>목표(타깃) 열</b>이 있나요?</p>
       <select id="targetSelect" class="border border-gray-200 rounded-lg px-3 py-2 text-sm mb-6"></select>
 
-      <div class="grid sm:grid-cols-2 gap-4">
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">타깃 열 없이 바로 가능</p>
+      <div class="grid sm:grid-cols-2 gap-4 mb-5">
         <div class="model-card sel" id="cardCluster" onclick="selectModel('cluster')">
           <span class="tag" id="clusterTag">추천</span>
-          <b class="block text-gray-900 mb-1">k-Means 군집분석</b>
-          <span class="text-gray-500 text-xs">타깃 열이 필요 없습니다 — 비슷한 데이터끼리 그룹으로 묶습니다.</span>
+          <b class="block text-gray-900 mb-1">군집분석</b>
+          <span class="text-gray-500 text-xs">비슷한 데이터끼리 그룹으로 묶습니다.</span>
         </div>
+        <div class="model-card" id="cardAssoc" onclick="selectModel('assoc')">
+          <b class="block text-gray-900 mb-1">연관분석</b>
+          <span class="text-gray-500 text-xs">함께 자주 나타나는 특성 사이의 규칙을 찾습니다.</span>
+        </div>
+      </div>
+
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">타깃 열을 정하면 가능</p>
+      <div class="grid sm:grid-cols-2 gap-4">
         <div class="model-card dim" id="cardRegress" onclick="selectModel('regress')">
           <b class="block text-gray-900 mb-1">선형 회귀</b>
           <span class="text-gray-500 text-xs">수치형 타깃 열이 필요합니다 — 나머지 수치형 열로 값을 예측합니다.</span>
@@ -401,14 +410,25 @@ textarea.reflect:focus{outline:2px solid #c4b5fd; border-color:#7c3aed;}
 
       <div id="clusterSetup" class="mt-6 p-5 bg-primary-50 rounded-xl border border-primary-100">
         <p class="font-bold text-primary-900 text-sm mb-3">군집분석에 사용할 축(열) 2개를 골라 주세요</p>
-        <div class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-4 items-end">
           <div><label class="text-xs text-gray-500 block mb-1">가로축(X)</label><select id="clusterXSel" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"></select></div>
           <div><label class="text-xs text-gray-500 block mb-1">세로축(Y)</label><select id="clusterYSel" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"></select></div>
-          <div><label class="text-xs text-gray-500 block mb-1">군집 개수 k</label>
+          <div><label class="text-xs text-gray-500 block mb-1">군집 개수 k (하이퍼파라미터)</label>
             <input type="range" id="kRange" min="2" max="5" value="5" class="align-middle">
             <span class="text-sm font-bold text-primary-700 ml-1" id="kVal">5</span>
           </div>
         </div>
+        <details class="why mt-3">
+          <summary>k는 왜 사람이 직접 정하나요? <span class="chev">▾</span></summary>
+          <p>k(군집 개수)는 k-평균 알고리즘의 <b>하이퍼파라미터</b>예요 — 모델이 스스로 찾는 값이 아니라 사람이 직접 정해야 합니다. k가 너무 작으면 성질이 다른 데이터가 한 군집에 뭉뚱그려지고, 너무 크면 의미 없이 잘게 쪼개져요. 그래서 몇 가지 k를 실제로 실행해 보고 실루엣 점수를 비교해서 정하는 것이 좋습니다.</p>
+        </details>
+        <button class="run-btn mt-3" style="background:#4f46e5" onclick="compareK()"><i class="fas fa-chart-simple text-[10px]"></i> 여러 k 비교해 보기</button>
+        <div id="kCompareBox" class="hidden mt-4"></div>
+      </div>
+
+      <div id="assocSetup" class="mt-6 p-5 bg-primary-50 rounded-xl border border-primary-100 hidden">
+        <p class="font-bold text-primary-900 text-sm mb-2">연관분석은 어떻게 진행되나요?</p>
+        <p class="text-xs text-gray-600 leading-relaxed">수치형 열은 자동으로 <b>하위 · 중위 · 상위</b> 3구간으로 나누고, 범주형 열은 그대로 사용해서 "함께 자주 나타나는 특성"의 규칙을 찾습니다. (최소 지지도 10%, 최소 신뢰도 60%)</p>
       </div>
 
       <div id="regressSetup" class="mt-6 p-5 bg-accent-50 rounded-xl border border-accent-100 hidden">
@@ -462,7 +482,19 @@ textarea.reflect:focus{outline:2px solid #c4b5fd; border-color:#7c3aed;}
     <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
       <p class="text-gray-700 text-sm leading-relaxed mb-4">이 분석 결과를 실제로 어디에 쓸 수 있을까요? 예) "고소득·고소비 군집을 VIP 대상 마케팅에 활용한다" 처럼 구체적으로 적어 보세요.</p>
       <textarea class="reflect" id="applyText" placeholder="분석 결과를 어떻게 활용하면 좋을지 적어 보세요."></textarea>
-      <button class="run-btn mt-4" style="background:#4b5563" onclick="location.reload()"><i class="fas fa-rotate-left text-[10px]"></i> 처음부터 다시 하기</button>
+
+      <div class="mt-6 pt-6 border-t border-gray-100">
+        <h4 class="font-bold text-gray-900 text-sm mb-3"><i class="fas fa-paper-plane text-primary-500 mr-1.5"></i>제출하기</h4>
+        <div class="flex flex-wrap gap-3 mb-3">
+          <input id="subName" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="이름">
+          <input id="subId" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="학번(선택)">
+        </div>
+        <button class="run-btn" onclick="submitProject()"><i class="fas fa-paper-plane text-[10px]"></i> 제출하고 기록 저장하기</button>
+        <p id="submitHint" class="text-xs text-gray-400 mt-3"></p>
+        <p id="submitStatus" class="text-xs mt-1"></p>
+      </div>
+
+      <button class="run-btn mt-6" style="background:#4b5563" onclick="location.reload()"><i class="fas fa-rotate-left text-[10px]"></i> 처음부터 다시 하기</button>
     </div>
   </section>
 
@@ -470,9 +502,39 @@ textarea.reflect:focus{outline:2px solid #c4b5fd; border-color:#7c3aed;}
 
 <footer class="bg-white border-t border-gray-100 py-8 no-print">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 text-xs text-gray-400 leading-relaxed">
-    이 페이지의 계산(기술통계·상관관계·k-Means 군집·선형 회귀)은 모두 브라우저 안에서 실제로 실행됩니다 — 서버로 데이터가 전송되지 않습니다.
+    이 페이지의 계산(기술통계·상관관계·회귀·군집·연관분석)은 모두 브라우저 안에서 실제로 실행됩니다. "제출하기"를 누르면 선생님이 설정한 구글 시트로만 결과가 전송되며, 그 외에는 어디로도 데이터가 전송되지 않습니다.
   </div>
 </footer>
+
+<!-- ══ 선생님 설정 ══ -->
+<button id="teacherSettingsBtn" class="fixed bottom-5 right-5 w-12 h-12 rounded-full bg-gray-800 hover:bg-gray-900 text-white shadow-lg flex items-center justify-center no-print z-40" title="선생님 설정" onclick="openSettings()">
+  <i class="fas fa-gear"></i>
+</button>
+
+<div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 no-print">
+  <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+    <h3 class="font-bold text-gray-900 mb-1">선생님 설정</h3>
+    <p class="text-xs text-gray-500 mb-4">학생 제출을 우리 반 구글 시트로 모으려면 Apps Script 웹 앱 주소를 붙여넣으세요. 이 설정은 <b>이 브라우저(이 컴퓨터)에만</b> 저장되고, 다른 선생님·다른 교실에는 영향을 주지 않습니다.</p>
+    <label class="text-xs text-gray-600 block mb-1">반/학급 이름 (선택)</label>
+    <input id="settingsClass" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3" placeholder="예) 2학년 3반">
+    <label class="text-xs text-gray-600 block mb-1">Apps Script 웹 앱 주소</label>
+    <input id="settingsUrl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-1" placeholder="https://script.google.com/macros/s/xxxx/exec">
+    <details class="reveal mb-4 mt-2">
+      <summary class="text-xs font-bold text-primary-600 cursor-pointer">주소가 없다면? 설정 방법 보기 <span class="chev">▾</span></summary>
+      <ol class="text-xs text-gray-600 list-decimal pl-4 mt-2 space-y-1.5 leading-relaxed">
+        <li>구글 드라이브에서 새 스프레드시트를 만듭니다.</li>
+        <li>메뉴 [확장 프로그램] → [Apps Script]를 엽니다.</li>
+        <li>기본 코드를 지우고, 안내받은 코드를 붙여넣은 뒤 저장합니다.</li>
+        <li>[배포] → [새 배포] → 유형 "웹 앱" 선택, 실행 계정: 나, 액세스 권한: 모든 사용자로 배포합니다.</li>
+        <li>발급된 웹 앱 URL을 복사해서 위 칸에 붙여넣고 저장합니다.</li>
+      </ol>
+    </details>
+    <div class="flex gap-2 justify-end">
+      <button class="px-4 py-2 text-sm text-gray-500" onclick="closeSettings()">닫기</button>
+      <button class="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg font-semibold" onclick="saveSettings()">저장</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ══════════════════ 상태(State) ══════════════════ */
@@ -716,6 +778,13 @@ function inferColumns(headers, rows){
   });
 }
 function numCols(){ return APP.cols.filter(c=>c.type==='num').map(c=>c.name); }
+function isIdLike(name){
+  const col = APP.cols.find(c=>c.name===name);
+  if(!col || col.type!=='num') return false;
+  const vals = APP.rows.map(r=>r[name]);
+  return new Set(vals).size === APP.rows.length && APP.rows.length > 1;
+}
+function modelCols(){ return numCols().filter(h=>!isIdLike(h)); }
 function numColValues(h){ return APP.rows.map(r=>parseFloat(r[h])).filter(v=>!isNaN(v)); }
 
 function loadData(headers, rows){
@@ -957,16 +1026,16 @@ function drillPair(a,b){
 /* ══════════════════ 4. 모델링 ══════════════════ */
 function renderTargetSelect(){
   const sel = document.getElementById('targetSelect');
-  sel.innerHTML = '<option value="">없음 — 군집분석으로 진행</option>' + APP.cols.filter(c=>c.type==='num').map(c=>`<option value="${esc(c.name)}">${esc(c.name)} (수치형 → 회귀)</option>`).join('');
+  sel.innerHTML = '<option value="">없음 — 군집분석 또는 연관분석</option>' + APP.cols.filter(c=>c.type==='num').map(c=>`<option value="${esc(c.name)}">${esc(c.name)} (수치형 → 회귀)</option>`).join('');
   sel.onchange = ()=>{
     APP.target = sel.value || null;
     if(APP.target){ selectModel('regress'); } else { selectModel('cluster'); }
   };
   const cx = document.getElementById('clusterXSel'), cy = document.getElementById('clusterYSel');
-  const nc = numCols();
+  const nc = modelCols();
   cx.innerHTML = nc.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
   cy.innerHTML = nc.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
-  cx.value = nc[2] || nc[1] || nc[0]; cy.value = nc[nc.length-1];
+  cx.value = nc[1] || nc[0]; cy.value = nc[nc.length-1];
   cx.onchange = ()=>{ APP.cxCol=cx.value; updateModelCode(); };
   cy.onchange = ()=>{ APP.cyCol=cy.value; updateModelCode(); };
   APP.cxCol = cx.value; APP.cyCol = cy.value;
@@ -974,19 +1043,21 @@ function renderTargetSelect(){
 function selectModel(mode){
   APP.mode = mode;
   document.getElementById('cardCluster').classList.toggle('sel', mode==='cluster');
+  document.getElementById('cardAssoc').classList.toggle('sel', mode==='assoc');
   document.getElementById('cardRegress').classList.toggle('sel', mode==='regress');
-  document.getElementById('cardCluster').classList.toggle('dim', mode!=='cluster' && !!APP.target);
   document.getElementById('cardRegress').classList.toggle('dim', !APP.target);
   document.getElementById('clusterSetup').classList.toggle('hidden', mode!=='cluster');
+  document.getElementById('assocSetup').classList.toggle('hidden', mode!=='assoc');
   document.getElementById('regressSetup').classList.toggle('hidden', mode!=='regress');
-  document.getElementById('trainDesc').textContent = mode==='cluster'
-    ? '군집분석은 훈련/평가 데이터를 나누지 않고, 데이터 전체로 학습합니다.'
-    : '회귀분석은 데이터를 훈련용과 평가용으로 나누어, 훈련용으로 학습하고 평가용으로 성능을 확인합니다.';
+  document.getElementById('trainDesc').textContent =
+      mode==='cluster' ? '군집분석은 훈련/평가 데이터를 나누지 않고, 데이터 전체로 학습합니다.'
+    : mode==='assoc'   ? '연관분석도 훈련/평가 데이터를 나누지 않고, 데이터 전체에서 규칙을 찾습니다.'
+    :                    '회귀분석은 데이터를 훈련용과 평가용으로 나누어, 훈련용으로 학습하고 평가용으로 성능을 확인합니다.';
   document.getElementById('splitRow').classList.toggle('hidden', mode!=='regress');
   if(mode==='regress' && APP.target){
     document.getElementById('xyChips').innerHTML =
       `<span class="chip" style="background:#ff6452;color:#fff;cursor:default;">y = ${esc(APP.target)}</span>` +
-      numCols().filter(h=>h!==APP.target).map(h=>`<span class="chip on" style="cursor:default;">X: ${esc(h)}</span>`).join('');
+      modelCols().filter(h=>h!==APP.target).map(h=>`<span class="chip on" style="cursor:default;">X: ${esc(h)}</span>`).join('');
   }
   updateModelCode();
 }
@@ -994,8 +1065,10 @@ function updateModelCode(){
   const box = document.getElementById('modelCode');
   if(APP.mode==='cluster'){
     box.innerHTML = `<div class="cl"><span class="ln">1</span><span><span class="kw">from</span> sklearn.cluster <span class="kw">import</span> KMeans</span></div><div class="cl"><span class="ln">2</span><span></span></div><div class="cl"><span class="ln">3</span><span>X = df[[<span class="st">"${esc(APP.cxCol||'')}"</span>, <span class="st">"${esc(APP.cyCol||'')}"</span>]]</span></div><div class="cl"><span class="ln">4</span><span>km = <span class="fn">KMeans</span>(n_clusters=<span class="nu">${APP.k}</span>, random_state=<span class="nu">42</span>)</span></div><div class="cl"><span class="ln">5</span><span>km.<span class="fn">fit</span>(X)</span></div>`;
+  }else if(APP.mode==='assoc'){
+    box.innerHTML = `<div class="cl"><span class="ln">1</span><span><span class="kw">from</span> mlxtend.preprocessing <span class="kw">import</span> TransactionEncoder</span></div><div class="cl"><span class="ln">2</span><span><span class="kw">from</span> mlxtend.frequent_patterns <span class="kw">import</span> apriori, association_rules</span></div><div class="cl"><span class="ln">3</span><span></span></div><div class="cl"><span class="ln">4</span><span>frequent_itemsets = <span class="fn">apriori</span>(basket, min_support=<span class="nu">0.1</span>, use_colnames=<span class="kw">True</span>)</span></div><div class="cl"><span class="ln">5</span><span><span class="fn">association_rules</span>(frequent_itemsets, metric=<span class="st">"confidence"</span>, min_threshold=<span class="nu">0.6</span>)</span></div>`;
   }else{
-    const xs = numCols().filter(h=>h!==APP.target);
+    const xs = modelCols().filter(h=>h!==APP.target);
     box.innerHTML = `<div class="cl"><span class="ln">1</span><span><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LinearRegression</span></div><div class="cl"><span class="ln">2</span><span><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split</span></div><div class="cl"><span class="ln">3</span><span></span></div><div class="cl"><span class="ln">4</span><span>X = df[[${xs.map(h=>'<span class="st">"'+esc(h)+'"</span>').join(', ')}]]</span></div><div class="cl"><span class="ln">5</span><span>y = df[<span class="st">"${esc(APP.target||'')}"</span>]</span></div>`;
   }
 }
@@ -1065,7 +1138,88 @@ function r2Score(y, pred){
   const ssRes = y.reduce((s,yi,i)=>s+(yi-pred[i])**2,0);
   return ssTot===0 ? 0 : 1-ssRes/ssTot;
 }
+function buildTransactions(){
+  const perRow = APP.rows.map(()=>[]);
+  APP.cols.forEach(c=>{
+    if(c.type==='num'){
+      if(isIdLike(c.name)) return;
+      const vals = numColValues(c.name).sort((a,b)=>a-b);
+      const t1 = quantile(vals, 1/3), t2 = quantile(vals, 2/3);
+      APP.rows.forEach((r,i)=>{
+        const v = parseFloat(r[c.name]);
+        if(isNaN(v)) return;
+        perRow[i].push(c.name + ':' + (v<=t1 ? '하위' : (v<=t2 ? '중위' : '상위')));
+      });
+    }else{
+      const uniq = [...new Set(APP.rows.map(r=>r[c.name]).filter(v=>v!==''))];
+      if(uniq.length>=2 && uniq.length<=8){
+        APP.rows.forEach((r,i)=>{ if(r[c.name]!=='') perRow[i].push(c.name + ':' + r[c.name]); });
+      }
+    }
+  });
+  const itemSet = new Set();
+  perRow.forEach(items=>items.forEach(it=>itemSet.add(it)));
+  return { items:[...itemSet], transactions:perRow };
+}
+function mineAssociationRules(transactions, items, minSupport, minConfidence){
+  const n = transactions.length;
+  const supportOf = arr => transactions.filter(t=>arr.every(it=>t.includes(it))).length / n;
+  const singleSupport = {};
+  items.forEach(it=> singleSupport[it]=supportOf([it]));
+  const frequent = items.filter(it=>singleSupport[it]>=minSupport);
+  const rules = [];
+  for(let i=0;i<frequent.length;i++){
+    for(let j=0;j<frequent.length;j++){
+      if(i===j) continue;
+      const a=frequent[i], b=frequent[j];
+      if(a.split(':')[0]===b.split(':')[0]) continue;
+      const supAB = supportOf([a,b]);
+      if(supAB < minSupport) continue;
+      const confidence = supAB/singleSupport[a];
+      if(confidence < minConfidence) continue;
+      rules.push({a, b, support:supAB, confidence, lift: confidence/singleSupport[b]});
+    }
+  }
+  rules.sort((x,y)=> y.lift-x.lift || y.confidence-x.confidence);
+  return rules;
+}
 
+function setK(k){
+  APP.k = k;
+  document.getElementById('kRange').value = k;
+  document.getElementById('kVal').textContent = k;
+  updateModelCode();
+}
+function compareK(){
+  const points = APP.rows.map(r=>[parseFloat(r[APP.cxCol]), parseFloat(r[APP.cyCol])]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
+  const results = [];
+  for(let k=2;k<=5;k++){
+    let best=null, bestInertia=Infinity;
+    for(let seed=1; seed<=6; seed++){
+      const res = kmeansRun(points, k, seed*13+1, 25);
+      let inertia=0;
+      res.labels.forEach((l,i)=> inertia += dist2(points[i], res.centroids[l]));
+      if(inertia<bestInertia){ bestInertia=inertia; best=res; }
+    }
+    results.push({k, sil: silhouetteScore(points, best.labels, k)});
+  }
+  const bestK = results.reduce((a,b)=> b.sil>a.sil ? b : a).k;
+  const maxSil = Math.max(...results.map(r=>r.sil), 0.001);
+  const bars = results.map(r=>{
+    const h = Math.max(4, (r.sil/maxSil) * 60);
+    const isBest = r.k===bestK;
+    return `<div class="flex flex-col items-center gap-1 cursor-pointer" onclick="setK(${r.k})" title="이 k로 설정하기">
+      <span class="text-[10px] font-mono ${isBest?'text-primary-700 font-bold':'text-gray-500'}">${r.sil.toFixed(2)}</span>
+      <div style="width:28px;height:${h}px;background:${isBest?'#7c3aed':'#c4b5fd'};border-radius:4px 4px 0 0;"></div>
+      <span class="text-xs ${isBest?'text-primary-700 font-bold':'text-gray-500'}">k=${r.k}</span>
+    </div>`;
+  }).join('');
+  const box = document.getElementById('kCompareBox');
+  box.classList.remove('hidden');
+  box.innerHTML = `
+    <p class="text-xs text-gray-500 mb-2">실루엣 점수가 가장 높은 값은 <b class="text-primary-700">k=${bestK}</b>입니다. 막대를 클릭하면 그 k로 바로 설정됩니다.</p>
+    <div class="flex items-end gap-4">${bars}</div>`;
+}
 function runFit(){
   document.getElementById('out5Row').classList.remove('hidden');
   const stepPills = document.getElementById('stepnav');
@@ -1083,8 +1237,16 @@ function runFit(){
     APP.model = {type:'cluster', points, labels, centroids, sil};
     document.getElementById('out5').textContent = `labels[:10] = [${labels.slice(0,10).join(' ')}]\nsilhouette_score = ${sil.toFixed(3)}`;
     renderClusterEval();
+  }else if(APP.mode==='assoc'){
+    const {items, transactions} = buildTransactions();
+    const rules = mineAssociationRules(transactions, items, 0.1, 0.6);
+    APP.model = {type:'assoc', rules};
+    document.getElementById('out5').textContent = rules.length
+      ? rules.slice(0,5).map(r=>`${r.a} → ${r.b}   (지지도 ${r.support.toFixed(2)}, 신뢰도 ${r.confidence.toFixed(2)}, 향상도 ${r.lift.toFixed(2)})`).join('\n')
+      : '조건(최소 지지도 10%, 신뢰도 60%)을 만족하는 규칙을 찾지 못했습니다.';
+    renderAssocEval();
   }else{
-    const xsCols = numCols().filter(h=>h!==APP.target);
+    const xsCols = modelCols().filter(h=>h!==APP.target);
     const rows = APP.rows.filter(r=> xsCols.every(h=>r[h]!=='' && !isNaN(parseFloat(r[h]))) && r[APP.target]!=='' && !isNaN(parseFloat(r[APP.target])));
     const rnd = seeded(7);
     const idx = [...Array(rows.length).keys()];
@@ -1137,6 +1299,22 @@ function renderClusterEval(){
     </div>
     <p class="text-xs text-gray-400 mt-4">실루엣 점수는 -1~1 사이이며, 1에 가까울수록 군집이 잘 나뉜 것입니다.</p>`;
 }
+function renderAssocEval(){
+  const rules = APP.model.rules;
+  if(!rules.length){
+    document.getElementById('evalBox').innerHTML = `<p class="text-gray-500 text-sm">조건(최소 지지도 10%, 최소 신뢰도 60%)을 만족하는 규칙을 찾지 못했습니다. 다른 데이터로 시도해 보세요.</p>`;
+    return;
+  }
+  const rows = rules.slice(0,10).map(r=>`<tr><td>${esc(r.a)} → ${esc(r.b)}</td><td>${r.support.toFixed(2)}</td><td>${r.confidence.toFixed(2)}</td><td>${r.lift.toFixed(2)}</td></tr>`).join('');
+  document.getElementById('evalBox').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat"><dt>발견된 규칙</dt><dd>${rules.length}개</dd></div>
+      <div class="stat"><dt>최소 지지도</dt><dd>0.10</dd></div>
+      <div class="stat"><dt>최소 신뢰도</dt><dd>0.60</dd></div>
+    </div>
+    <div class="scroll-x mt-6"><table class="dtable"><thead><tr><th>규칙 (조건 → 결과)</th><th>지지도</th><th>신뢰도</th><th>향상도</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="text-xs text-gray-400 mt-4">향상도(lift)가 1보다 크면 두 특성이 우연히 나타나는 것보다 더 자주 함께 나타난다는 뜻입니다.</p>`;
+}
 function renderRegressEval(){
   const {ytest, predTest, r2} = APP.model;
   const xmin=Math.min(...ytest), xmax=Math.max(...ytest);
@@ -1169,6 +1347,101 @@ function copyCode(btn){
   btn.textContent = '복사됨!'; setTimeout(()=>btn.textContent='복사', 1200);
 }
 
+/* ══════════════════ 선생님 설정 및 제출 ══════════════════ */
+function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+function lsSet(key,val){ try{ localStorage.setItem(key,val); return true; }catch(e){ return false; } }
+function openSettings(){
+  document.getElementById('settingsClass').value = lsGet('ds_class_label')||'';
+  document.getElementById('settingsUrl').value = lsGet('ds_sheet_url')||'';
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.add('hidden'); }
+function saveSettings(){
+  const ok = lsSet('ds_class_label', document.getElementById('settingsClass').value.trim())
+           && lsSet('ds_sheet_url', document.getElementById('settingsUrl').value.trim());
+  closeSettings();
+  updateSubmitHint();
+  if(!ok) alert('이 브라우저에서는 설정 저장이 차단되어 있습니다(개인정보 보호 모드 등). 매번 다시 열 때 새로 입력해야 할 수 있습니다.');
+}
+function updateSubmitHint(){
+  const hint = document.getElementById('submitHint');
+  if(!hint) return;
+  const url = lsGet('ds_sheet_url');
+  hint.textContent = url
+    ? '✓ 선생님 시트에 연결되어 있습니다 — 제출하면 자동으로 기록됩니다.'
+    : '아직 선생님 시트에 연결되지 않았습니다(오른쪽 아래 톱니바퀴에서 설정) — 지금 제출하면 내 컴퓨터에 md 파일만 저장됩니다.';
+}
+function summarizeResult(){
+  if(!APP.model) return '(5단계에서 아직 학습을 실행하지 않았습니다)';
+  if(APP.model.type==='cluster') return `군집분석 · k=${APP.k} · 실루엣 점수 ${APP.model.sil.toFixed(3)}`;
+  if(APP.model.type==='regress') return `회귀분석(타깃: ${APP.target}) · R² ${APP.model.r2.toFixed(3)}`;
+  if(APP.model.type==='assoc'){
+    const top = APP.model.rules[0];
+    return `연관분석 · 발견된 규칙 ${APP.model.rules.length}개` + (top ? ` · 최상위 규칙: ${top.a} → ${top.b} (신뢰도 ${top.confidence.toFixed(2)})` : '');
+  }
+  return '';
+}
+function buildSubmissionMD(name, sid){
+  const dataset = APP.fname || 'Mall_Customers.csv';
+  const modeLabel = {cluster:'군집분석', regress:'회귀분석', assoc:'연관분석'}[APP.mode] || APP.mode;
+  const ts = new Date().toLocaleString('ko-KR');
+  return `# 데이터 분석 프로젝트 제출
+
+- 이름: ${name} (${sid||'-'})
+- 반: ${lsGet('ds_class_label')||'-'}
+- 제출 시각: ${ts}
+- 사용 데이터: ${dataset}
+- 분석 방법: ${modeLabel}
+
+## 문제 정의
+${document.getElementById('problemText').value || '(작성 안 함)'}
+
+## 핵심 결과
+${summarizeResult()}
+
+## 활용 아이디어
+${document.getElementById('applyText').value || '(작성 안 함)'}
+`;
+}
+function downloadText(filename, text){
+  const blob = new Blob([text], {type:'text/markdown;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function submitProject(){
+  const name = document.getElementById('subName').value.trim();
+  const sid = document.getElementById('subId').value.trim();
+  const statusEl = document.getElementById('submitStatus');
+  if(!name){ statusEl.textContent='이름을 입력해 주세요.'; statusEl.className='text-xs text-red-600 mt-1'; return; }
+
+  downloadText(`데이터분석프로젝트_${name}.md`, buildSubmissionMD(name, sid));
+
+  const sheetUrl = lsGet('ds_sheet_url');
+  if(!sheetUrl){
+    statusEl.textContent = 'md 파일을 내려받았습니다. (선생님 시트 연결이 안 되어 있어 자동 제출은 생략됨)';
+    statusEl.className = 'text-xs text-amber-600 mt-1';
+    return;
+  }
+  const payload = {
+    timestamp: new Date().toISOString(),
+    classLabel: lsGet('ds_class_label')||'',
+    name, studentId: sid,
+    dataset: APP.fname || 'Mall_Customers.csv',
+    mode: {cluster:'군집분석', regress:'회귀분석', assoc:'연관분석'}[APP.mode] || APP.mode,
+    summary: summarizeResult(),
+    problem: document.getElementById('problemText').value,
+    apply: document.getElementById('applyText').value
+  };
+  statusEl.textContent = '제출 중...';
+  statusEl.className = 'text-xs text-gray-500 mt-1';
+  fetch(sheetUrl, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) })
+    .then(()=>{ statusEl.textContent = '제출 완료! md 파일도 내 컴퓨터에 저장되었습니다.'; statusEl.className = 'text-xs text-green-600 mt-1 font-semibold'; })
+    .catch(()=>{ statusEl.textContent = 'md 파일은 저장됐지만 선생님 시트 전송에 실패했습니다(인터넷 연결을 확인하세요).'; statusEl.className = 'text-xs text-red-600 mt-1'; });
+}
+
 /* ══════════════════ 전체 렌더 ══════════════════ */
 function renderAll(){
   renderPreview();
@@ -1181,6 +1454,7 @@ function renderAll(){
 renderStepnav();
 const parsed = parseCSV(MALL_CSV);
 loadData(parsed.headers, parsed.rows);
+updateSubmitHint();
 
 const io = new IntersectionObserver(entries=>{
   entries.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('.step-pill').forEach(p=>p.classList.toggle('on', p.dataset.id===e.target.id)); } });
