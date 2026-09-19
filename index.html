@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>데이터 분석 프로젝트 - 데이터 과학</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Noto Sans KR','sans-serif'] },
+    colors: {
+      primary: {50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',800:'#5b21b6',900:'#4c1d95'},
+      accent:  {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}
+    }
+  }}
+}
+</script>
+<style>
+* { font-family:'Noto Sans KR',sans-serif; }
+
+.hero-gradient{ background:linear-gradient(135deg,#4c1d95 0%,#6d28d9 40%,#4338ca 100%); }
+
+:root{
+  --c0:#2a78d6; --c1:#eda100; --c2:#e87ba4; --c3:#008300; --c4:#4a3aa7;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --surface:#ffffff;
+}
+
+.fade-in{transition:opacity .6s ease-out, transform .6s ease-out;}
+html.anim .fade-in{opacity:0; transform:translateY(20px);}
+html.anim .fade-in.visible{opacity:1; transform:translateY(0);}
+.card-hover{transition:all .3s cubic-bezier(.4,0,.2,1);}
+.card-hover:hover{transform:translateY(-4px); box-shadow:0 20px 40px -12px rgba(0,0,0,.15);}
+@keyframes heroFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.hero-icon-wrap{animation:heroFloat 6s ease-in-out infinite;}
+
+.step-pill{
+  display:flex; align-items:center; gap:7px; padding:8px 13px; border-radius:9px;
+  font-size:.78rem; font-weight:600; background:#f1f3f5; color:#6b7280;
+  border:1px solid transparent; white-space:nowrap; transition:all .2s ease; cursor:pointer;
+}
+.step-pill b{
+  width:20px; height:20px; border-radius:6px; background:#e5e7eb; color:#6b7280;
+  display:flex; align-items:center; justify-content:center; font-size:.7rem; flex-shrink:0;
+}
+.step-pill.on{background:#7c3aed; color:#fff; border-color:#a78bfa;}
+.step-pill.on b{background:rgba(255,255,255,.25); color:#fff;}
+.step-pill.done b{background:#ede9fe; color:#7c3aed;}
+
+.code-box{background:#0f172a; border-radius:12px; overflow:hidden;}
+.code-box pre{margin:0; padding:12px 6px; overflow-x:auto; font-family:"Consolas","D2Coding","DejaVu Sans Mono",monospace; font-size:.8rem; line-height:1.85; color:#e2e8f0;}
+.code-box .kw{color:#c4b5fd;} .code-box .fn{color:#7dd3fc;}
+.code-box .st{color:#86efac;} .code-box .cm{color:#64748b; font-style:italic;}
+.code-box .nu{color:#fbbf24;}
+.code-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 14px; background:#1e293b; border-bottom:1px solid #334155;
+  font-size:.72rem; color:#94a3b8; font-weight:600;
+}
+.copy-btn{background:transparent; border:1px solid #475569; color:#94a3b8;
+  padding:3px 9px; border-radius:6px; font-size:.68rem; cursor:pointer; transition:all .18s;}
+.copy-btn:hover{background:#334155; color:#e2e8f0;}
+.cl{display:flex; gap:10px; padding:1px 10px;}
+.cl .ln{color:#475569; width:14px; text-align:right; flex:0 0 auto; user-select:none;}
+
+.nb-row{display:flex; gap:10px; align-items:flex-start; margin-top:10px;}
+.nb-prompt{font-family:monospace; font-size:.68rem; color:#9ca3af; width:54px; flex:0 0 auto; text-align:right; padding-top:10px; white-space:nowrap;}
+.nb-body{flex:1; min-width:0;}
+.run-btn{
+  display:inline-flex; align-items:center; gap:7px; margin-top:10px; background:#7c3aed; color:#fff;
+  border:none; padding:8px 16px; border-radius:8px; font-size:.8rem; font-weight:700; cursor:pointer; transition:background .15s;
+}
+.run-btn:hover{background:#6d28d9;}
+.run-btn:disabled{opacity:.5; cursor:not-allowed;}
+.nb-output{background:#fff; border:1px solid #e5e7eb; border-left:3px solid #a78bfa; border-radius:0 10px 10px 0; padding:12px 16px;}
+.nb-output pre{margin:0; font-family:monospace; font-size:.78rem; color:#1f2937; line-height:1.7; white-space:pre; overflow-x:auto;}
+
+.dtable{width:100%; border-collapse:collapse; font-size:.82rem;}
+.dtable th{background:#f5f3ff; color:#4c1d95; font-weight:700; text-align:left; padding:9px 12px; border-bottom:2px solid #ddd6fe; white-space:nowrap;}
+.dtable td{padding:8px 12px; border-bottom:1px solid #eef0f3; font-variant-numeric:tabular-nums; font-family:monospace; font-size:.8rem;}
+.dtable tbody tr:hover{background:#faf9ff;}
+.scroll-x{overflow-x:auto; -webkit-overflow-scrolling:touch; min-width:0;}
+
+.chip{display:inline-flex; align-items:center; gap:6px; font-size:.8rem; font-weight:600; background:#f1f3f5; color:#4b5563; padding:6px 13px; border-radius:20px; cursor:pointer; border:1.5px solid transparent; transition:all .15s;}
+.chip:hover{border-color:#c4b5fd;}
+.chip.on{background:#7c3aed; color:#fff;}
+.chip.dim{opacity:.45; cursor:not-allowed;}
+.chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+
+.drop-zone{border:2px dashed #d1d5db; border-radius:14px; padding:26px 18px; text-align:center; color:#9ca3af; font-size:.85rem; transition:all .15s; cursor:pointer;}
+.drop-zone:hover, .drop-zone.drag{border-color:#7c3aed; background:#faf9ff; color:#7c3aed;}
+
+.model-card{border:1.5px solid #e5e7eb; border-radius:14px; padding:16px 18px; cursor:pointer; transition:all .15s; position:relative; background:#fff;}
+.model-card:hover{border-color:#c4b5fd;}
+.model-card.sel{border-color:#7c3aed; background:#faf9ff; box-shadow:0 0 0 3px rgba(124,58,237,.12);}
+.model-card.dim{opacity:.45; pointer-events:none;}
+.model-card .tag{position:absolute; top:-9px; right:12px; background:#7c3aed; color:#fff; font-size:.62rem; font-weight:800; padding:2px 9px; border-radius:9px;}
+
+.heat-grid{display:grid; gap:4px; margin-top:8px;}
+.heat-label{font-size:.68rem; font-weight:700; color:#6b7280; display:flex; align-items:center; justify-content:center; padding:5px 2px; text-align:center;}
+.heat-cell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px; font-family:monospace; font-size:.72rem; font-weight:700; cursor:pointer; border:2px solid transparent; transition:all .15s;}
+.heat-cell.diag{background:#f3f4f6; color:#9ca3af; cursor:default;}
+.heat-cell.active{border-color:#7c3aed; transform:scale(1.06);}
+
+.stat-row{display:grid; gap:12px;}
+.stat{background:#fff; border:1px solid #e5e7eb; border-radius:11px; padding:12px 14px;}
+.stat dt{font-size:.68rem; color:#9ca3af; font-weight:700; letter-spacing:.3px; margin:0;}
+.stat dd{font-size:1.15rem; font-weight:800; margin:2px 0 0; font-family:monospace; color:#1f2937;}
+
+.cluster-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #eef0f3;}
+.cluster-row:last-child{border-bottom:none;}
+.cluster-dot{width:12px; height:12px; border-radius:50%; flex:0 0 auto;}
+
+.issue{display:flex; align-items:flex-start; gap:10px; padding:11px 0; border-bottom:1px solid #eef0f3;}
+.issue .ico{width:26px; height:26px; border-radius:7px; background:#fff1eb; display:flex; align-items:center; justify-content:center; flex:0 0 auto; color:#ea580c;}
+.issue .txt b{display:block; font-size:.84rem; font-weight:700; color:#1f2937;}
+.issue .txt span{font-size:.76rem; color:#9ca3af;}
+
+details.reveal summary{cursor:pointer; list-style:none;}
+details.reveal summary::-webkit-details-marker{display:none;}
+details.reveal[open] summary .chev{transform:rotate(180deg);}
+.chev{transition:transform .25s ease;}
+details.why{margin-top:6px;}
+details.why summary{color:#7c3aed; font-weight:700; font-size:.78rem; display:inline-flex; align-items:center; gap:4px;}
+details.why p{margin:8px 0 0; color:#6b7280; line-height:1.65; font-size:.78rem; background:#faf9ff; border:1px solid #ede9fe; border-radius:8px; padding:10px 12px;}
+
+.info-box{background:linear-gradient(135deg,#f5eefc,#fdeef4); border:1px solid #ecdcf5; border-radius:14px; padding:18px 20px;}
+.info-badge{display:inline-flex; align-items:center; background:#d6bbfb; color:#5b21b6; font-weight:800; font-size:.66rem; padding:4px 12px; border-radius:20px; margin-bottom:10px;}
+table.info-table{width:100%; border-collapse:collapse;}
+table.info-table th{color:#6d28d9; width:118px; vertical-align:top; font-size:.75rem; font-weight:800; text-align:left; padding:8px 10px 8px 0;}
+table.info-table td{color:#5b6072; font-size:.78rem; line-height:1.65; padding:8px 0;}
+table.info-table tr{border-bottom:1px dashed #ecdcf5;}
+table.info-table tr:last-child{border-bottom:none;}
+
+.hidden{display:none !important;}
+textarea.reflect{width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; font-size:.88rem; color:#1f2937; min-height:110px; resize:vertical;}
+textarea.reflect:focus{outline:2px solid #c4b5fd; border-color:#7c3aed;}
+
+@media print{ .no-print{display:none !important;} }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 leading-relaxed">
+
+<!-- ══ 상단 내비게이션 ══ -->
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-50 no-print">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="flex justify-between items-center h-14">
+      <a href="../../index.html" class="flex items-center gap-2 text-gray-600 hover:text-primary-700 transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left"></i><span>전체 단원</span>
+      </a>
+      <span class="bg-primary-50 text-primary-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-primary-100">
+        Ⅳ. 데이터 과학 프로젝트
+      </span>
+    </div>
+  </div>
+</nav>
+
+<div class="bg-white border-b border-gray-100 no-print">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3">
+    <nav class="flex items-center text-xs text-gray-500 gap-2 flex-wrap">
+      <a href="../../index.html" class="hover:text-primary-600 transition-colors"><i class="fas fa-home mr-1"></i>전체</a>
+      <i class="fas fa-chevron-right text-[10px] text-gray-300"></i>
+      <span class="text-gray-600 font-medium">Ⅳ. 데이터 과학 프로젝트</span>
+      <i class="fas fa-chevron-right text-[10px] text-gray-300"></i>
+      <span class="text-primary-700 font-semibold">데이터 분석 프로젝트 실습</span>
+    </nav>
+  </div>
+</div>
+
+<!-- ══ 히어로 ══ -->
+<section class="hero-gradient text-white py-14 sm:py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+      <div class="flex-1">
+        <span class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold px-4 py-1.5 rounded-full mb-6 border border-white/20">
+          🧪 Ⅳ. 데이터 과학 프로젝트 &nbsp;·&nbsp; 전체 과정 실습
+        </span>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-3 leading-tight">데이터 분석 프로젝트</h1>
+        <p class="text-primary-100 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl">
+          내가 고른 데이터로 문제 정의부터 모델 평가까지, 데이터 과학의 전 과정을
+          이 페이지 하나에서 직접 진행해 봅니다. 군집분석(k-Means)을 포함한
+          실제 계산이 브라우저 안에서 그대로 실행됩니다.
+        </p>
+        <div class="flex flex-wrap gap-3 text-sm">
+          <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-bullseye text-primary-300"></i><span>문제 정의</span></div>
+          <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-table text-primary-300"></i><span>데이터 수집</span></div>
+          <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10"><i class="fas fa-object-group text-primary-300"></i><span>k-Means 군집분석</span></div>
+        </div>
+      </div>
+      <div class="hidden md:block flex-shrink-0 hero-icon-wrap" aria-hidden="true">
+        <svg width="200" height="200" viewBox="0 0 220 220" fill="none">
+          <circle cx="70" cy="72" r="34" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.28)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="152" cy="62" r="28" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.28)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="112" cy="152" r="38" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.28)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <g fill="rgba(255,255,255,.55)">
+            <circle cx="58" cy="62" r="4"/><circle cx="78" cy="58" r="4"/><circle cx="66" cy="82" r="4"/><circle cx="84" cy="80" r="4"/>
+            <circle cx="146" cy="52" r="4"/><circle cx="162" cy="60" r="4"/><circle cx="148" cy="72" r="4"/>
+            <circle cx="100" cy="140" r="4"/><circle cx="120" cy="136" r="4"/><circle cx="108" cy="162" r="4"/><circle cx="128" cy="158" r="4"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+
+  <!-- 학습 목표 -->
+  <section class="fade-in">
+    <div class="bg-primary-50 border border-primary-200 rounded-2xl p-6 sm:p-8">
+      <div class="flex items-start gap-3 mb-4">
+        <div class="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0"><i class="fas fa-bullseye text-white text-sm"></i></div>
+        <h2 class="text-xl font-bold text-primary-900">학습 목표</h2>
+      </div>
+      <ul class="space-y-2.5 text-primary-800">
+        <li class="flex items-start gap-2.5"><i class="fas fa-check-circle text-primary-500 mt-1 flex-shrink-0"></i><span>문제 정의부터 데이터 수집·전처리·탐색·모델링·평가까지 데이터 과학의 전체 과정을 직접 수행할 수 있다.</span></li>
+        <li class="flex items-start gap-2.5"><i class="fas fa-check-circle text-primary-500 mt-1 flex-shrink-0"></i><span>내 데이터의 특성에 맞는 분석 방법(회귀 또는 군집)을 선택하고, 그 결과를 해석할 수 있다.</span></li>
+      </ul>
+      <p class="text-primary-700 text-xs mt-4"><i class="fas fa-circle-info mr-1"></i>기본 예시 데이터는 Ⅲ-3단원의 <b>Mall_Customers.csv</b>(쇼핑몰 고객 200명)입니다. 내 CSV 파일로 바로 바꿔서 진행할 수도 있습니다.</p>
+    </div>
+  </section>
+
+  <!-- 진행 단계 바로가기 -->
+  <section class="no-print">
+    <div class="flex flex-wrap gap-2" id="stepnav"></div>
+  </section>
+
+  <!-- ═══ STEP 0. 문제 정의 ═══ -->
+  <section class="fade-in" id="step-0">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-bullseye"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">0 &nbsp;문제 정의하기</h2><p class="text-gray-500 text-sm mt-0.5">Define the Problem</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+      <p class="text-gray-700 text-sm leading-relaxed mb-4">
+        어떤 문제를 데이터로 풀어보고 싶나요? 예를 들어 실제 교과서 프로젝트는
+        <strong class="text-primary-700">"초미세먼지 농도로 호흡기 질환자 수를 예측할 수 있을까?"</strong>,
+        <strong class="text-primary-700">"쇼핑몰 고객을 소비 성향에 따라 그룹으로 나눌 수 있을까?"</strong> 같은 질문에서 출발했습니다.
+        아래에 내가 풀고 싶은 문제를 적어 보세요.
+      </p>
+      <textarea class="reflect" id="problemText" placeholder="예) 우리 학교 매점 판매 데이터를 분석해서, 어떤 간식을 더 준비해야 할지 알아보고 싶다."></textarea>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 1. 데이터 수집 ═══ -->
+  <section class="fade-in" id="step-1">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-table"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">1 &nbsp;데이터 수집하기</h2><p class="text-gray-500 text-sm mt-0.5">Collect Data</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div>
+          <div class="drop-zone" id="dropZone">
+            <i class="fas fa-cloud-arrow-up text-2xl mb-2 block"></i>
+            CSV / TSV 파일을 끌어다 놓거나 클릭해서 올리세요
+            <input type="file" id="fileInput" accept=".csv,.tsv,text/csv" class="hidden">
+          </div>
+          <div class="flex items-center gap-3 mt-3 text-xs text-gray-500 flex-wrap">
+            <label class="flex items-center gap-1.5"><input type="radio" name="enc" value="auto" checked> 자동 감지</label>
+            <label class="flex items-center gap-1.5"><input type="radio" name="enc" value="utf-8"> UTF-8</label>
+            <label class="flex items-center gap-1.5"><input type="radio" name="enc" value="euc-kr"> EUC-KR/ANSI</label>
+            <span class="chip" id="encStatus" style="background:#e3f6ea;color:#0f8a4b; display:none;"></span>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1.5">자동 감지가 틀리게 인식했다면(글자가 깨져 보이면) 위에서 인코딩을 직접 골라 다시 올려 보세요.</p>
+          <p class="text-xs text-gray-400 mt-3">또는 기본 예시 데이터를 사용합니다 (지금 로딩됨):</p>
+          <div class="chip-row mt-1"><span class="chip on" id="sampleChip">Mall_Customers.csv · 200행</span></div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <h4 class="font-bold text-gray-900 mb-2 text-sm"><i class="fas fa-eye text-accent-600 mr-1"></i>미리보기 · 상위 5행</h4>
+          <div class="scroll-x"><table class="dtable" id="previewTable"></table></div>
+          <div class="chip-row mt-3" id="colTypeChips"></div>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <div class="code-head rounded-t-xl"><span>1_데이터_수집.py</span><span class="copy-btn" onclick="copyCode(this)">복사</span></div>
+        <div class="code-box rounded-t-none">
+          <pre id="code1"><div class="cl"><span class="ln">1</span><span><span class="kw">import</span> pandas <span class="kw">as</span> pd</span></div><div class="cl"><span class="ln">2</span><span></span></div><div class="cl"><span class="ln">3</span><span>df = pd.<span class="fn">read_csv</span>(<span class="st">"<span id="code1fname">Mall_Customers.csv</span>"</span>)</span></div><div class="cl"><span class="ln">4</span><span>df.<span class="fn">head</span>()</span></div></pre>
+        </div>
+        <div class="nb-row">
+          <div class="nb-prompt" id="p1In">In [ ]:</div>
+          <div class="nb-body"><button class="run-btn" onclick="runHead()"><i class="fas fa-play text-[10px]"></i> 실행</button></div>
+        </div>
+        <div class="nb-row hidden" id="out1Row">
+          <div class="nb-prompt">Out[1]:</div>
+          <div class="nb-body"><div class="nb-output"><pre id="out1"></pre></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 2. 전처리 ═══ -->
+  <section class="fade-in" id="step-2">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-broom"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">2 &nbsp;데이터 전처리하기</h2><p class="text-gray-500 text-sm mt-0.5">Preprocess Data</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 space-y-8">
+
+      <div>
+        <h3 class="font-bold text-gray-900 text-sm mb-2">기술 통계 확인하기</h3>
+        <div class="code-head rounded-t-xl"><span>2_전처리.py</span><span class="copy-btn" onclick="copyCode(this)">복사</span></div>
+        <div class="code-box rounded-t-none"><pre><div class="cl"><span class="ln">1</span><span>df.<span class="fn">describe</span>()</span></div></pre></div>
+        <div class="nb-row"><div class="nb-prompt" id="p2In">In [ ]:</div><div class="nb-body"><button class="run-btn" onclick="runDescribe()"><i class="fas fa-play text-[10px]"></i> 실행</button></div></div>
+        <div class="nb-row hidden" id="out2Row"><div class="nb-prompt">Out[2]:</div><div class="nb-body"><div class="nb-output"><pre id="out2"></pre></div></div></div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-gray-900 text-sm mb-2">결측치 확인하기</h3>
+        <div class="code-head rounded-t-xl"><span>2_전처리.py</span><span class="copy-btn" onclick="copyCode(this)">복사</span></div>
+        <div class="code-box rounded-t-none"><pre><div class="cl"><span class="ln">1</span><span>df.<span class="fn">isnull</span>().<span class="fn">sum</span>()</span></div></pre></div>
+        <div class="nb-row"><div class="nb-prompt" id="p3In">In [ ]:</div><div class="nb-body"><button class="run-btn" onclick="runIsnull()"><i class="fas fa-play text-[10px]"></i> 실행</button></div></div>
+        <div class="nb-row hidden" id="out3Row"><div class="nb-prompt">Out[3]:</div><div class="nb-body"><div class="nb-output"><pre id="out3"></pre></div></div></div>
+        <div id="issueList" class="mt-4"></div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-gray-900 text-sm mb-2">정규화하기 (Min-Max Scaling)</h3>
+        <p class="text-gray-600 text-xs leading-relaxed mb-3">군집분석은 두 점 사이의 <b>거리</b>로 그룹을 나눕니다. 열마다 범위가 다르면 범위가 큰 열이 거리 계산을 더 많이 좌우하게 되므로, 0~1 범위로 맞춰 줍니다.</p>
+        <div class="chip-row mb-3" id="normColChips"></div>
+        <div class="code-head rounded-t-xl"><span>2_전처리.py</span><span class="copy-btn" onclick="copyCode(this)">복사</span></div>
+        <div class="code-box rounded-t-none"><pre id="normCode"></pre></div>
+        <div class="nb-row"><div class="nb-prompt" id="p4In">In [ ]:</div><div class="nb-body"><button class="run-btn" onclick="runNormalize()"><i class="fas fa-play text-[10px]"></i> 실행</button></div></div>
+        <div class="nb-row hidden" id="out4Row"><div class="nb-prompt">Out[4]:</div><div class="nb-body"><div class="nb-output"><pre id="out4"></pre></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 3. EDA ═══ -->
+  <section class="fade-in" id="step-3">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-chart-simple"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">3 &nbsp;탐색적 데이터 분석(EDA)</h2><p class="text-gray-500 text-sm mt-0.5">Exploratory Data Analysis</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 space-y-8">
+
+      <div>
+        <h3 class="font-bold text-gray-900 text-sm mb-2">① 열 하나 살펴보기</h3>
+        <div class="chip-row mb-3" id="histColChips"></div>
+        <div class="scroll-x"><svg id="histSvg" viewBox="0 0 480 200" class="w-full" style="min-width:340px"></svg></div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-gray-900 text-sm mb-3">② 상관관계 히트맵 <span class="text-gray-400 font-normal">— 셀을 클릭하면 산점도가 나타납니다</span></h3>
+        <div class="grid lg:grid-cols-2 gap-6 items-start">
+          <div class="scroll-x"><div id="heatWrap"></div></div>
+          <div>
+            <p class="text-sm font-bold text-gray-800 mb-2" id="drillTitle">두 열을 선택해 보세요</p>
+            <svg id="scatterSvg" viewBox="0 0 320 220" class="w-full" style="min-width:260px"></svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="info-box">
+          <span class="info-badge">알고 가기</span>
+          <h4 class="font-bold text-primary-900 mb-3">데이터 프로파일링의 메뉴 설명</h4>
+          <table class="info-table"><tbody>
+            <tr><th>Overview</th><td>데이터 프레임의 열의 개수, 데이터 타입, 결측치 비율 등 기본 정보를 제공한다.</td></tr>
+            <tr><th>Variables</th><td>각 열에 대한 통계 정보(최솟값·최댓값·중앙값·평균값·표준편차 등)와 변수의 고윳값 개수, 결측치 개수·비율을 보여 준다.</td></tr>
+            <tr><th>Interactions</th><td>변수 간의 상호 영향을 산점도로 보여 준다.</td></tr>
+            <tr><th>Correlations</th><td>변수 간의 상관계수 행렬과 히트맵을 제공한다.</td></tr>
+            <tr><th>Missing Values</th><td>변수별 결측치 비율과 패턴을 보여 준다.</td></tr>
+            <tr><th>Sample</th><td>데이터 프레임의 상위 10개, 하위 10개 데이터를 보여 준다.</td></tr>
+          </tbody></table>
+        </div>
+        <div class="code-head rounded-t-xl mt-4"><span>3_EDA_리포트.py</span><span class="copy-btn" onclick="copyCode(this)">복사</span></div>
+        <div class="code-box rounded-t-none"><pre><div class="cl"><span class="ln">1</span><span><span class="kw">from</span> ydata_profiling <span class="kw">import</span> ProfileReport</span></div><div class="cl"><span class="ln">2</span><span></span></div><div class="cl"><span class="ln">3</span><span>profile = <span class="fn">ProfileReport</span>(df, title=<span class="st">"내 프로젝트 리포트"</span>)</span></div><div class="cl"><span class="ln">4</span><span>profile.<span class="fn">to_notebook_iframe</span>()</span></div></pre></div>
+        <p class="text-xs text-gray-400 mt-2">위 히트맵과 요약이 바로 ydata-profiling 리포트의 핵심(Correlations · Variables)을 이 페이지 안에서 실제 데이터로 계산한 것입니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 4. 모델링 ═══ -->
+  <section class="fade-in" id="step-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-diagram-project"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">4 &nbsp;모델링하기</h2><p class="text-gray-500 text-sm mt-0.5">Choose a Model</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+      <p class="text-gray-700 text-sm mb-2">예측하고 싶은 <b>목표(타깃) 열</b>이 있나요?</p>
+      <select id="targetSelect" class="border border-gray-200 rounded-lg px-3 py-2 text-sm mb-6"></select>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="model-card sel" id="cardCluster" onclick="selectModel('cluster')">
+          <span class="tag" id="clusterTag">추천</span>
+          <b class="block text-gray-900 mb-1">k-Means 군집분석</b>
+          <span class="text-gray-500 text-xs">타깃 열이 필요 없습니다 — 비슷한 데이터끼리 그룹으로 묶습니다.</span>
+        </div>
+        <div class="model-card dim" id="cardRegress" onclick="selectModel('regress')">
+          <b class="block text-gray-900 mb-1">선형 회귀</b>
+          <span class="text-gray-500 text-xs">수치형 타깃 열이 필요합니다 — 나머지 수치형 열로 값을 예측합니다.</span>
+        </div>
+      </div>
+
+      <div id="clusterSetup" class="mt-6 p-5 bg-primary-50 rounded-xl border border-primary-100">
+        <p class="font-bold text-primary-900 text-sm mb-3">군집분석에 사용할 축(열) 2개를 골라 주세요</p>
+        <div class="flex flex-wrap gap-4">
+          <div><label class="text-xs text-gray-500 block mb-1">가로축(X)</label><select id="clusterXSel" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"></select></div>
+          <div><label class="text-xs text-gray-500 block mb-1">세로축(Y)</label><select id="clusterYSel" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"></select></div>
+          <div><label class="text-xs text-gray-500 block mb-1">군집 개수 k</label>
+            <input type="range" id="kRange" min="2" max="5" value="5" class="align-middle">
+            <span class="text-sm font-bold text-primary-700 ml-1" id="kVal">5</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="regressSetup" class="mt-6 p-5 bg-accent-50 rounded-xl border border-accent-100 hidden">
+        <p class="font-bold text-accent-900 text-sm mb-2">독립변수(X) / 종속변수(y)</p>
+        <p class="text-xs text-gray-600 mb-3">종속변수(y)로 고른 열을 제외한 <b>모든 수치형 열</b>이 자동으로 독립변수(X)가 됩니다.</p>
+        <div class="chip-row" id="xyChips"></div>
+      </div>
+
+      <div class="mt-6">
+        <div class="code-head rounded-t-xl"><span>4_모델링.py</span><span class="copy-btn" onclick="copyCode(this)">복사</span></div>
+        <div class="code-box rounded-t-none"><pre id="modelCode"></pre></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 5. 학습 ═══ -->
+  <section class="fade-in" id="step-5">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-graduation-cap"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">5 &nbsp;학습하기</h2><p class="text-gray-500 text-sm mt-0.5">Train the Model</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+      <p class="text-gray-700 text-sm mb-1" id="trainDesc">군집분석은 훈련/평가 데이터를 나누지 않고, 데이터 전체로 학습합니다.</p>
+      <div id="splitRow" class="hidden flex items-center gap-3 mb-4 mt-3">
+        <label class="text-xs text-gray-500">훈련:평가 비율</label>
+        <input type="range" id="splitRange" min="50" max="90" value="80">
+        <span class="text-sm font-bold text-accent-700" id="splitVal">80 : 20</span>
+      </div>
+      <button class="run-btn mt-3" id="fitBtn" onclick="runFit()"><i class="fas fa-play text-[10px]"></i> 학습 실행</button>
+      <div class="nb-row hidden mt-3" id="out5Row"><div class="nb-prompt">Out[5]:</div><div class="nb-body"><div class="nb-output"><pre id="out5"></pre></div></div></div>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 6. 평가 ═══ -->
+  <section class="fade-in" id="step-6">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-square-poll-vertical"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">6 &nbsp;모델 평가하기</h2><p class="text-gray-500 text-sm mt-0.5">Evaluate the Model</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8" id="evalBox">
+      <p class="text-gray-400 text-sm">5단계에서 "학습 실행"을 누르면 결과가 여기에 나타납니다.</p>
+    </div>
+  </section>
+
+  <!-- ═══ STEP 7. 활용 ═══ -->
+  <section class="fade-in" id="step-7">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xl shadow-lg"><i class="fas fa-lightbulb"></i></div>
+      <div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">7 &nbsp;결과 활용하기</h2><p class="text-gray-500 text-sm mt-0.5">Apply the Result</p></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+      <p class="text-gray-700 text-sm leading-relaxed mb-4">이 분석 결과를 실제로 어디에 쓸 수 있을까요? 예) "고소득·고소비 군집을 VIP 대상 마케팅에 활용한다" 처럼 구체적으로 적어 보세요.</p>
+      <textarea class="reflect" id="applyText" placeholder="분석 결과를 어떻게 활용하면 좋을지 적어 보세요."></textarea>
+      <button class="run-btn mt-4" style="background:#4b5563" onclick="location.reload()"><i class="fas fa-rotate-left text-[10px]"></i> 처음부터 다시 하기</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="bg-white border-t border-gray-100 py-8 no-print">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 text-xs text-gray-400 leading-relaxed">
+    이 페이지의 계산(기술통계·상관관계·k-Means 군집·선형 회귀)은 모두 브라우저 안에서 실제로 실행됩니다 — 서버로 데이터가 전송되지 않습니다.
+  </div>
+</footer>
+
+<script>
+/* ══════════════════ 상태(State) ══════════════════ */
+const APP = { rows:[], cols:[], target:null, mode:'cluster', k:5, cxCol:null, cyCol:null, model:null, drillA:null, drillB:null };
+
+const MALL_CSV = `고객 번호,성별,나이,연 수입,소비 점수(1-100)
+1,Male,19,15,39
+2,Male,21,15,81
+3,Female,20,16,6
+4,Female,23,16,77
+5,Female,31,17,40
+6,Female,22,17,76
+7,Female,35,18,6
+8,Female,23,18,94
+9,Male,64,19,3
+10,Female,30,19,72
+11,Male,67,19,14
+12,Female,35,19,99
+13,Female,58,20,15
+14,Female,24,20,77
+15,Male,37,20,13
+16,Male,22,20,79
+17,Female,35,21,35
+18,Male,20,21,66
+19,Male,52,23,29
+20,Female,35,23,98
+21,Male,35,24,35
+22,Male,25,24,73
+23,Female,46,25,5
+24,Male,31,25,73
+25,Female,54,28,14
+26,Male,29,28,82
+27,Female,45,28,32
+28,Male,35,28,61
+29,Female,40,29,31
+30,Female,23,29,87
+31,Male,60,30,4
+32,Female,21,30,73
+33,Male,53,33,4
+34,Male,18,33,92
+35,Female,49,33,14
+36,Female,21,33,81
+37,Female,42,34,17
+38,Female,30,34,73
+39,Female,36,37,26
+40,Female,20,37,75
+41,Female,65,38,35
+42,Male,24,38,92
+43,Male,48,39,36
+44,Female,31,39,61
+45,Female,49,39,28
+46,Female,24,39,65
+47,Female,50,40,55
+48,Female,27,40,47
+49,Female,29,40,42
+50,Female,31,40,42
+51,Female,49,42,52
+52,Male,33,42,60
+53,Female,31,43,54
+54,Male,59,43,60
+55,Female,50,43,45
+56,Male,47,43,41
+57,Female,51,44,50
+58,Male,69,44,46
+59,Female,27,46,51
+60,Male,53,46,46
+61,Male,70,46,56
+62,Male,19,46,55
+63,Female,67,47,52
+64,Female,54,47,59
+65,Male,63,48,51
+66,Male,18,48,59
+67,Female,43,48,50
+68,Female,68,48,48
+69,Male,19,48,59
+70,Female,32,48,47
+71,Male,70,49,55
+72,Female,47,49,42
+73,Female,60,50,49
+74,Female,60,50,56
+75,Male,59,54,47
+76,Male,26,54,54
+77,Female,45,54,53
+78,Male,40,54,48
+79,Female,23,54,52
+80,Female,49,54,42
+81,Male,57,54,51
+82,Male,38,54,55
+83,Male,67,54,41
+84,Female,46,54,44
+85,Female,21,54,57
+86,Male,48,54,46
+87,Female,55,57,58
+88,Female,22,57,55
+89,Female,34,58,60
+90,Female,50,58,46
+91,Female,68,59,55
+92,Male,18,59,41
+93,Male,48,60,49
+94,Female,40,60,40
+95,Female,32,60,42
+96,Male,24,60,52
+97,Female,47,60,47
+98,Female,27,60,50
+99,Male,48,61,42
+100,Male,20,61,49
+101,Female,23,62,41
+102,Female,49,62,48
+103,Male,67,62,59
+104,Male,26,62,55
+105,Male,49,62,56
+106,Female,21,62,42
+107,Female,66,63,50
+108,Male,54,63,46
+109,Male,68,63,43
+110,Male,66,63,48
+111,Male,65,63,52
+112,Female,19,63,54
+113,Female,38,64,42
+114,Male,19,64,46
+115,Female,18,65,48
+116,Female,19,65,50
+117,Female,63,65,43
+118,Female,49,65,59
+119,Female,51,67,43
+120,Female,50,67,57
+121,Male,27,67,56
+122,Female,38,67,40
+123,Female,40,69,58
+124,Male,39,69,91
+125,Female,23,70,29
+126,Female,31,70,77
+127,Male,43,71,35
+128,Male,40,71,95
+129,Male,59,71,11
+130,Male,38,71,75
+131,Male,47,71,9
+132,Male,39,71,75
+133,Female,25,72,34
+134,Female,31,72,71
+135,Male,20,73,5
+136,Female,29,73,88
+137,Female,44,73,7
+138,Male,32,73,73
+139,Male,19,74,10
+140,Female,35,74,72
+141,Female,57,75,5
+142,Male,32,75,93
+143,Female,28,76,40
+144,Female,32,76,87
+145,Male,25,77,12
+146,Male,28,77,97
+147,Male,48,77,36
+148,Female,32,77,74
+149,Female,34,78,22
+150,Male,34,78,90
+151,Male,43,78,17
+152,Male,39,78,88
+153,Female,44,78,20
+154,Female,38,78,76
+155,Female,47,78,16
+156,Female,27,78,89
+157,Male,37,78,1
+158,Female,30,78,78
+159,Male,34,78,1
+160,Female,30,78,73
+161,Female,56,79,35
+162,Female,29,79,83
+163,Male,19,81,5
+164,Female,31,81,93
+165,Male,50,85,26
+166,Female,36,85,75
+167,Male,42,86,20
+168,Female,33,86,95
+169,Female,36,87,27
+170,Male,32,87,63
+171,Male,40,87,13
+172,Male,28,87,75
+173,Male,36,87,10
+174,Male,36,87,92
+175,Female,52,88,13
+176,Female,30,88,86
+177,Male,58,88,15
+178,Male,27,88,69
+179,Male,59,93,14
+180,Male,35,93,90
+181,Female,37,97,32
+182,Female,32,97,86
+183,Male,46,98,15
+184,Female,29,98,88
+185,Female,41,99,39
+186,Male,30,99,97
+187,Female,54,101,24
+188,Male,28,101,68
+189,Female,41,103,17
+190,Female,36,103,85
+191,Female,34,103,23
+192,Female,32,103,69
+193,Male,33,113,8
+194,Female,38,113,91
+195,Female,47,120,16
+196,Female,35,120,79
+197,Female,45,126,28
+198,Male,32,126,74
+199,Male,32,137,18
+200,Male,30,137,83`;
+
+/* ══════════════════ 유틸 ══════════════════ */
+function seeded(seed){ let s=seed; return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
+function mean(a){ return a.reduce((s,x)=>s+x,0)/a.length; }
+function stdev(a){ const m=mean(a); return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/Math.max(1,a.length-1)); }
+function quantile(sorted,q){ const pos=(sorted.length-1)*q, base=Math.floor(pos), rest=pos-base; return sorted[base+1]!==undefined ? sorted[base]+rest*(sorted[base+1]-sorted[base]) : sorted[base]; }
+function fmt(n){ return Math.abs(n) < 1e-9 ? '0.000000' : n.toFixed(6); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function splitCSVLine(line){
+  const out=[]; let cur='', inQ=false;
+  for(let i=0;i<line.length;i++){ const ch=line[i];
+    if(ch === '"'){ inQ=!inQ; continue; }
+    if(ch===',' && !inQ){ out.push(cur); cur=''; continue; }
+    cur+=ch;
+  }
+  out.push(cur);
+  return out.map(s=>s.trim());
+}
+function parseCSV(text){
+  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.length>0);
+  const headers = splitCSVLine(lines[0]);
+  const rows = lines.slice(1).map(line=>{
+    const vals = splitCSVLine(line); const obj={};
+    headers.forEach((h,i)=> obj[h] = vals[i]!==undefined ? vals[i] : '');
+    return obj;
+  });
+  return {headers, rows};
+}
+function inferColumns(headers, rows){
+  return headers.map(h=>{
+    let numCount=0, total=0;
+    rows.forEach(r=>{ const v=r[h]; if(v===''||v==null) return; total++; if(v!=='' && !isNaN(parseFloat(v)) && isFinite(v)) numCount++; });
+    return { name:h, type: (total>0 && numCount/total>0.9) ? 'num' : 'cat' };
+  });
+}
+function numCols(){ return APP.cols.filter(c=>c.type==='num').map(c=>c.name); }
+function numColValues(h){ return APP.rows.map(r=>parseFloat(r[h])).filter(v=>!isNaN(v)); }
+
+function loadData(headers, rows){
+  APP.rows = rows;
+  APP.cols = inferColumns(headers, rows);
+  APP.target = null;
+  renderAll();
+}
+
+/* ══════════════════ 1. 수집 ══════════════════ */
+function renderPreview(){
+  const t = document.getElementById('previewTable');
+  const cols = APP.cols;
+  let html = '<thead><tr>' + cols.map(c=>`<th>${esc(c.name)} <span class="text-[10px] font-normal ${c.type==='num'?'text-indigo-500':'text-rose-500'}">${c.type==='num'?'수치형':'범주형'}</span></th>`).join('') + '</tr></thead><tbody>';
+  APP.rows.slice(0,5).forEach(r=>{ html += '<tr>' + cols.map(c=>`<td>${esc(r[c.name])}</td>`).join('') + '</tr>'; });
+  html += '</tbody>';
+  t.innerHTML = html;
+
+  document.getElementById('code1fname').textContent = APP.fname || 'Mall_Customers.csv';
+}
+function runHead(){
+  document.getElementById('p1In').textContent = 'In [1]:';
+  const cols = APP.cols.map(c=>c.name);
+  let lines = ['   ' + cols.join('  ')];
+  APP.rows.slice(0,5).forEach((r,i)=> lines.push(i+'  ' + cols.map(c=>r[c]).join('  ')));
+  document.getElementById('out1').textContent = lines.join('\n');
+  document.getElementById('out1Row').classList.remove('hidden');
+}
+function decodeAuto(bytes){
+  try{
+    return { text: new TextDecoder('utf-8', {fatal:true}).decode(bytes), enc:'UTF-8' };
+  }catch(e){
+    return { text: new TextDecoder('euc-kr').decode(bytes), enc:'EUC-KR' };
+  }
+}
+function handleFile(file){
+  const encRadio = document.querySelector('input[name=enc]:checked').value;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const bytes = new Uint8Array(e.target.result);
+    let text, encLabel;
+    if(encRadio === 'auto'){
+      const r = decodeAuto(bytes);
+      text = r.text; encLabel = r.enc + ' 자동 감지됨 ✓';
+    }else{
+      text = new TextDecoder(encRadio).decode(bytes);
+      encLabel = (encRadio==='utf-8'?'UTF-8':'EUC-KR') + ' (직접 선택)';
+    }
+    const statusChip = document.getElementById('encStatus');
+    statusChip.textContent = encLabel;
+    statusChip.style.display = 'inline-flex';
+    const {headers, rows} = parseCSV(text);
+    APP.fname = file.name;
+    document.getElementById('sampleChip').textContent = file.name + ' · ' + rows.length + '행';
+    loadData(headers, rows);
+  };
+  reader.readAsArrayBuffer(file);
+}
+document.getElementById('fileInput').addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+const dz = document.getElementById('dropZone');
+dz.addEventListener('click', ()=>document.getElementById('fileInput').click());
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('drag'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+/* ══════════════════ 2. 전처리 ══════════════════ */
+function runDescribe(){
+  document.getElementById('p2In').textContent = 'In [2]:';
+  const cols = numCols();
+  const rowsLbl = ['count','mean','std','min','25%','50%','75%','max'];
+  const data = cols.map(h=>{
+    const v = numColValues(h).sort((a,b)=>a-b);
+    return [v.length, mean(v), stdev(v), v[0], quantile(v,0.25), quantile(v,0.5), quantile(v,0.75), v[v.length-1]];
+  });
+  let lines = ['       ' + cols.join('    ')];
+  rowsLbl.forEach((lbl,i)=>{ lines.push(lbl.padEnd(6) + ' ' + data.map(d=>d[i].toFixed(2).padStart(10)).join(' ')); });
+  document.getElementById('out2').textContent = lines.join('\n');
+  document.getElementById('out2Row').classList.remove('hidden');
+}
+function runIsnull(){
+  document.getElementById('p3In').textContent = 'In [3]:';
+  let lines = APP.cols.map(c=>{
+    const n = APP.rows.filter(r=>r[c.name]===''||r[c.name]==null).length;
+    return c.name.padEnd(16) + n;
+  });
+  lines.push('dtype: int64');
+  document.getElementById('out3').textContent = lines.join('\n');
+  document.getElementById('out3Row').classList.remove('hidden');
+  renderIssues();
+}
+function renderIssues(){
+  const box = document.getElementById('issueList');
+  let html = '';
+  APP.cols.forEach(c=>{
+    const n = APP.rows.filter(r=>r[c.name]===''||r[c.name]==null).length;
+    if(n>0){
+      html += `<div class="issue"><div class="ico"><i class="fas fa-triangle-exclamation text-xs"></i></div><div class="txt"><b>${esc(c.name)} 결측치 ${n}건</b><span>평균/최빈값 대체 또는 행 삭제를 고려하세요</span></div></div>`;
+    }
+    if(c.type==='num'){
+      const v = numColValues(c.name).sort((a,b)=>a-b);
+      const q1=quantile(v,0.25), q3=quantile(v,0.75), iqr=q3-q1;
+      const lo=q1-1.5*iqr, hi=q3+1.5*iqr;
+      const outliers = v.filter(x=>x<lo||x>hi);
+      if(outliers.length>0){
+        html += `<div class="issue"><div class="ico"><i class="fas fa-arrow-up-right-dots text-xs"></i></div><div class="txt"><b>${esc(c.name)} 이상치 후보 ${outliers.length}건</b><span>IQR 기준 정상범위(${lo.toFixed(1)}~${hi.toFixed(1)}) 밖의 값</span></div></div>
+          <details class="why"><summary>왜 그런가요? <span class="chev">▾</span></summary><p>상자그림에서 1사분위 - 1.5×IQR ~ 3사분위 + 1.5×IQR 범위를 벗어난 값이에요. 평균이나 군집 결과를 왜곡할 수 있어 확인이 필요해요.</p></details>`;
+      }
+    }
+    if(c.type==='cat'){
+      const uniq = [...new Set(APP.rows.map(r=>r[c.name]))];
+      if(uniq.length>=2 && uniq.length<=6){
+        html += `<div class="issue"><div class="ico"><i class="fas fa-list text-xs"></i></div><div class="txt"><b>${esc(c.name)} → 원-핫 인코딩 추천</b><span>범주 ${uniq.length}종(${uniq.slice(0,4).join(', ')})</span></div></div>
+          <details class="why"><summary>왜 그런가요? <span class="chev">▾</span></summary><p>모델은 문자를 그대로 계산하지 못해요. 0과 1 같은 숫자로 바꿔야 회귀·분류·군집 계산에 넣을 수 있어요.</p></details>`;
+      }
+    }
+  });
+  box.innerHTML = html || '<p class="text-sm text-gray-400">특별한 이슈가 발견되지 않았습니다.</p>';
+}
+function renderNormChips(){
+  const box = document.getElementById('normColChips');
+  box.innerHTML = numCols().map(h=>`<span class="chip ${APP.normSel && APP.normSel.includes(h)?'on':''}" onclick="toggleNorm('${h.replace(/'/g,"")}')">${esc(h)}</span>`).join('');
+  const cols = numCols();
+  if(!APP.normSel) APP.normSel = cols.slice(-2);
+  updateNormCode();
+}
+function toggleNorm(h){
+  APP.normSel = APP.normSel.includes(h) ? APP.normSel.filter(x=>x!==h) : [...APP.normSel, h];
+  renderNormChips();
+}
+function updateNormCode(){
+  const lines = [];
+  (APP.normSel||[]).forEach((h,i)=>{
+    const v = `c${i}`;
+    lines.push(`<div class="cl"><span class="ln">${i*2+1}</span><span>${v} = df[<span class="st">"${esc(h)}"</span>]</span></div>`);
+    lines.push(`<div class="cl"><span class="ln">${i*2+2}</span><span>${v}_scale = (${v} - <span class="fn">min</span>(${v})) / (<span class="fn">max</span>(${v}) - <span class="fn">min</span>(${v}))</span></div>`);
+  });
+  document.getElementById('normCode').innerHTML = lines.join('');
+}
+function runNormalize(){
+  document.getElementById('p4In').textContent = 'In [4]:';
+  const lines = (APP.normSel||[]).map(h=>{
+    const v = numColValues(h);
+    const mn=Math.min(...v), mx=Math.max(...v);
+    const scaled = v.slice(0,5).map(x=> ((x-mn)/(mx-mn)).toFixed(6));
+    return h + '_scale.head() -> [' + scaled.join(', ') + ', ...]';
+  });
+  document.getElementById('out4').textContent = lines.join('\n\n');
+  document.getElementById('out4Row').classList.remove('hidden');
+}
+
+/* ══════════════════ 3. EDA ══════════════════ */
+function renderHistChips(){
+  const box = document.getElementById('histColChips');
+  if(!APP.histCol) APP.histCol = numCols()[1] || numCols()[0];
+  box.innerHTML = APP.cols.map(c=>`<span class="chip ${APP.histCol===c.name?'on':''}" onclick="setHistCol('${c.name.replace(/'/g,"")}')">${esc(c.name)}</span>`).join('');
+  drawHist();
+}
+function setHistCol(h){ APP.histCol = h; renderHistChips(); }
+function drawHist(){
+  const svg = document.getElementById('histSvg');
+  const col = APP.cols.find(c=>c.name===APP.histCol);
+  const W=480,H=200,padL=44,padB=28,padT=14,padR=14;
+  let bars=[], labels=[];
+  if(col && col.type==='num'){
+    const v = numColValues(col.name);
+    const mn=Math.min(...v), mx=Math.max(...v);
+    const bins=8, w=(mx-mn)/bins || 1;
+    const counts = new Array(bins).fill(0);
+    v.forEach(x=>{ let idx=Math.floor((x-mn)/w); if(idx>=bins) idx=bins-1; if(idx<0) idx=0; counts[idx]++; });
+    const maxC = Math.max(...counts,1);
+    const bw = (W-padL-padR)/bins;
+    counts.forEach((c,i)=>{
+      const h = (H-padT-padB) * (c/maxC);
+      bars.push(`<rect x="${padL+i*bw+3}" y="${H-padB-h}" width="${bw-6}" height="${h}" fill="#7c3aed" rx="3"/>`);
+      labels.push(`<text x="${padL+i*bw+bw/2}" y="${H-padB+14}" font-size="9" fill="#9ca3af" text-anchor="middle">${(mn+i*w).toFixed(0)}</text>`);
+    });
+  }else if(col){
+    const counts = {};
+    APP.rows.forEach(r=>{ const k=r[col.name]||'(빈값)'; counts[k]=(counts[k]||0)+1; });
+    const keys = Object.keys(counts);
+    const maxC = Math.max(...Object.values(counts),1);
+    const bw = (W-padL-padR)/keys.length;
+    keys.forEach((k,i)=>{
+      const h = (H-padT-padB) * (counts[k]/maxC);
+      bars.push(`<rect x="${padL+i*bw+8}" y="${H-padB-h}" width="${bw-16}" height="${h}" fill="#4f46e5" rx="3"/>`);
+      labels.push(`<text x="${padL+i*bw+bw/2}" y="${H-padB+14}" font-size="10" fill="#9ca3af" text-anchor="middle">${esc(k)}</text>`);
+    });
+  }
+  svg.innerHTML = `<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#e5e7eb"/>` + bars.join('') + labels.join('');
+}
+
+function renderHeat(){
+  const cols = numCols();
+  const n = cols.length;
+  const wrap = document.getElementById('heatWrap');
+  let html = `<div class="heat-grid" style="grid-template-columns:90px repeat(${n},minmax(56px,1fr));">`;
+  html += '<div></div>' + cols.map(c=>`<div class="heat-label">${esc(c)}</div>`).join('');
+  cols.forEach(rc=>{
+    html += `<div class="heat-label">${esc(rc)}</div>`;
+    cols.forEach(cc=>{
+      if(rc===cc){ html += `<div class="heat-cell diag">1.00</div>`; return; }
+      const r = pearson(rc,cc);
+      const bg = r>=0 ? `rgba(124,58,237,${Math.min(.85,Math.abs(r)+.08)})` : `rgba(37,99,235,${Math.min(.85,Math.abs(r)+.08)})`;
+      const fg = Math.abs(r)>0.4 ? '#fff' : '#374151';
+      html += `<div class="heat-cell" style="background:${bg};color:${fg}" onclick="drillPair('${rc.replace(/'/g,"")}','${cc.replace(/'/g,"")}')">${r.toFixed(2)}</div>`;
+    });
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  if(cols.length>=2 && !APP.drillA){ drillPair(cols[1]||cols[0], cols[cols.length-1]); }
+}
+function pearson(hx,hy){
+  const pairs = APP.rows.map(r=>[parseFloat(r[hx]), parseFloat(r[hy])]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
+  const xs=pairs.map(p=>p[0]), ys=pairs.map(p=>p[1]);
+  const mx=mean(xs), my=mean(ys);
+  let num=0,dx=0,dy=0;
+  for(let i=0;i<pairs.length;i++){ num+=(xs[i]-mx)*(ys[i]-my); dx+=(xs[i]-mx)**2; dy+=(ys[i]-my)**2; }
+  return (dx===0||dy===0) ? 0 : num/Math.sqrt(dx*dy);
+}
+function drillPair(a,b){
+  APP.drillA=a; APP.drillB=b;
+  document.getElementById('drillTitle').textContent = `${a} × ${b}  (r = ${pearson(a,b).toFixed(2)})`;
+  const svg = document.getElementById('scatterSvg');
+  const xs = APP.rows.map(r=>parseFloat(r[a])), ys = APP.rows.map(r=>parseFloat(r[b]));
+  const xmin=Math.min(...xs), xmax=Math.max(...xs), ymin=Math.min(...ys), ymax=Math.max(...ys);
+  const W=320,H=220,pad=30;
+  const sx = x => pad + (x-xmin)/(xmax-xmin||1) * (W-pad*1.5);
+  const sy = y => H-pad - (y-ymin)/(ymax-ymin||1) * (H-pad*1.5);
+  let dots='';
+  APP.rows.forEach(r=>{
+    const x=parseFloat(r[a]), y=parseFloat(r[b]);
+    if(isNaN(x)||isNaN(y)) return;
+    dots += `<circle cx="${sx(x).toFixed(1)}" cy="${sy(y).toFixed(1)}" r="2.6" fill="#7c3aed" opacity="0.65"/>`;
+  });
+  svg.innerHTML = `<line x1="${pad}" y1="${H-pad}" x2="${W-8}" y2="${H-pad}" stroke="#e5e7eb"/><line x1="${pad}" y1="8" x2="${pad}" y2="${H-pad}" stroke="#e5e7eb"/>${dots}
+    <text x="${W/2}" y="${H-6}" font-size="9" fill="#9ca3af" text-anchor="middle">${esc(a)}</text>`;
+}
+
+/* ══════════════════ 4. 모델링 ══════════════════ */
+function renderTargetSelect(){
+  const sel = document.getElementById('targetSelect');
+  sel.innerHTML = '<option value="">없음 — 군집분석으로 진행</option>' + APP.cols.filter(c=>c.type==='num').map(c=>`<option value="${esc(c.name)}">${esc(c.name)} (수치형 → 회귀)</option>`).join('');
+  sel.onchange = ()=>{
+    APP.target = sel.value || null;
+    if(APP.target){ selectModel('regress'); } else { selectModel('cluster'); }
+  };
+  const cx = document.getElementById('clusterXSel'), cy = document.getElementById('clusterYSel');
+  const nc = numCols();
+  cx.innerHTML = nc.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
+  cy.innerHTML = nc.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
+  cx.value = nc[2] || nc[1] || nc[0]; cy.value = nc[nc.length-1];
+  cx.onchange = ()=>{ APP.cxCol=cx.value; updateModelCode(); };
+  cy.onchange = ()=>{ APP.cyCol=cy.value; updateModelCode(); };
+  APP.cxCol = cx.value; APP.cyCol = cy.value;
+}
+function selectModel(mode){
+  APP.mode = mode;
+  document.getElementById('cardCluster').classList.toggle('sel', mode==='cluster');
+  document.getElementById('cardRegress').classList.toggle('sel', mode==='regress');
+  document.getElementById('cardCluster').classList.toggle('dim', mode!=='cluster' && !!APP.target);
+  document.getElementById('cardRegress').classList.toggle('dim', !APP.target);
+  document.getElementById('clusterSetup').classList.toggle('hidden', mode!=='cluster');
+  document.getElementById('regressSetup').classList.toggle('hidden', mode!=='regress');
+  document.getElementById('trainDesc').textContent = mode==='cluster'
+    ? '군집분석은 훈련/평가 데이터를 나누지 않고, 데이터 전체로 학습합니다.'
+    : '회귀분석은 데이터를 훈련용과 평가용으로 나누어, 훈련용으로 학습하고 평가용으로 성능을 확인합니다.';
+  document.getElementById('splitRow').classList.toggle('hidden', mode!=='regress');
+  if(mode==='regress' && APP.target){
+    document.getElementById('xyChips').innerHTML =
+      `<span class="chip" style="background:#ff6452;color:#fff;cursor:default;">y = ${esc(APP.target)}</span>` +
+      numCols().filter(h=>h!==APP.target).map(h=>`<span class="chip on" style="cursor:default;">X: ${esc(h)}</span>`).join('');
+  }
+  updateModelCode();
+}
+function updateModelCode(){
+  const box = document.getElementById('modelCode');
+  if(APP.mode==='cluster'){
+    box.innerHTML = `<div class="cl"><span class="ln">1</span><span><span class="kw">from</span> sklearn.cluster <span class="kw">import</span> KMeans</span></div><div class="cl"><span class="ln">2</span><span></span></div><div class="cl"><span class="ln">3</span><span>X = df[[<span class="st">"${esc(APP.cxCol||'')}"</span>, <span class="st">"${esc(APP.cyCol||'')}"</span>]]</span></div><div class="cl"><span class="ln">4</span><span>km = <span class="fn">KMeans</span>(n_clusters=<span class="nu">${APP.k}</span>, random_state=<span class="nu">42</span>)</span></div><div class="cl"><span class="ln">5</span><span>km.<span class="fn">fit</span>(X)</span></div>`;
+  }else{
+    const xs = numCols().filter(h=>h!==APP.target);
+    box.innerHTML = `<div class="cl"><span class="ln">1</span><span><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LinearRegression</span></div><div class="cl"><span class="ln">2</span><span><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split</span></div><div class="cl"><span class="ln">3</span><span></span></div><div class="cl"><span class="ln">4</span><span>X = df[[${xs.map(h=>'<span class="st">"'+esc(h)+'"</span>').join(', ')}]]</span></div><div class="cl"><span class="ln">5</span><span>y = df[<span class="st">"${esc(APP.target||'')}"</span>]</span></div>`;
+  }
+}
+document.getElementById('kRange').addEventListener('input', e=>{ APP.k = parseInt(e.target.value); document.getElementById('kVal').textContent = APP.k; updateModelCode(); });
+document.getElementById('splitRange').addEventListener('input', e=>{ const v=e.target.value; document.getElementById('splitVal').textContent = v+' : '+(100-v); });
+
+/* ══════════════════ 5~6. 학습 & 평가 (실제 계산) ══════════════════ */
+function dist2(a,b){ return (a[0]-b[0])**2 + (a[1]-b[1])**2; }
+function kmeansRun(points, k, seed, iters){
+  const rnd = seeded(seed);
+  const idxs = [...Array(points.length).keys()];
+  for(let i=idxs.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [idxs[i],idxs[j]]=[idxs[j],idxs[i]]; }
+  let centroids = idxs.slice(0,k).map(i=>points[i].slice());
+  let labels = new Array(points.length).fill(0);
+  for(let it=0; it<iters; it++){
+    for(let i=0;i<points.length;i++){
+      let best=0,bestD=Infinity;
+      for(let c=0;c<k;c++){ const d=dist2(points[i],centroids[c]); if(d<bestD){bestD=d;best=c;} }
+      labels[i]=best;
+    }
+    const sums = Array.from({length:k},()=>({s:[0,0],n:0}));
+    for(let i=0;i<points.length;i++){ sums[labels[i]].s[0]+=points[i][0]; sums[labels[i]].s[1]+=points[i][1]; sums[labels[i]].n++; }
+    for(let c=0;c<k;c++){ if(sums[c].n>0) centroids[c]=[sums[c].s[0]/sums[c].n, sums[c].s[1]/sums[c].n]; }
+  }
+  return {labels, centroids};
+}
+function silhouetteScore(points, labels, k){
+  const n = points.length;
+  let total=0;
+  for(let i=0;i<n;i++){
+    const ci=labels[i];
+    let a=0,aN=0;
+    const bSum=new Array(k).fill(0), bCnt=new Array(k).fill(0);
+    for(let j=0;j<n;j++){
+      if(i===j) continue;
+      const d=Math.sqrt(dist2(points[i],points[j]));
+      if(labels[j]===ci){ a+=d; aN++; } else { bSum[labels[j]]+=d; bCnt[labels[j]]++; }
+    }
+    a = aN>0? a/aN : 0;
+    let b=Infinity;
+    for(let c=0;c<k;c++){ if(c!==ci && bCnt[c]>0){ const avg=bSum[c]/bCnt[c]; if(avg<b) b=avg; } }
+    if(!isFinite(b)) b=0;
+    total += Math.max(a,b)>0 ? (b-a)/Math.max(a,b) : 0;
+  }
+  return total/n;
+}
+function fitRegression(xs, ys){
+  const p = xs[0].length, n = xs.length;
+  const stats = Array.from({length:p},(_,j)=>{ const col=xs.map(r=>r[j]); return {mean:mean(col), std:stdev(col)||1}; });
+  const Xs = xs.map(r=> r.map((v,j)=>(v-stats[j].mean)/stats[j].std));
+  let w=new Array(p).fill(0), b=0;
+  const lr=0.15, epochs=600;
+  for(let e=0;e<epochs;e++){
+    const preds = Xs.map(r=> r.reduce((s,v,j)=>s+v*w[j],0)+b);
+    const errs = preds.map((pr,i)=>pr-ys[i]);
+    const gw = new Array(p).fill(0); let gb=0;
+    for(let i=0;i<n;i++){ for(let j=0;j<p;j++) gw[j]+=errs[i]*Xs[i][j]; gb+=errs[i]; }
+    for(let j=0;j<p;j++) w[j]-= lr*(gw[j]/n);
+    b -= lr*(gb/n);
+  }
+  const preds = Xs.map(r=> r.reduce((s,v,j)=>s+v*w[j],0)+b);
+  return {w,b,stats,preds};
+}
+function r2Score(y, pred){
+  const my = mean(y);
+  const ssTot = y.reduce((s,yi)=>s+(yi-my)**2,0);
+  const ssRes = y.reduce((s,yi,i)=>s+(yi-pred[i])**2,0);
+  return ssTot===0 ? 0 : 1-ssRes/ssTot;
+}
+
+function runFit(){
+  document.getElementById('out5Row').classList.remove('hidden');
+  const stepPills = document.getElementById('stepnav');
+  if(APP.mode==='cluster'){
+    const points = APP.rows.map(r=>[parseFloat(r[APP.cxCol]), parseFloat(r[APP.cyCol])]).filter(p=>!isNaN(p[0])&&!isNaN(p[1]));
+    let best=null, bestInertia=Infinity;
+    for(let seed=1; seed<=10; seed++){
+      const res = kmeansRun(points, APP.k, seed*13+1, 30);
+      let inertia=0;
+      res.labels.forEach((l,i)=> inertia += dist2(points[i], res.centroids[l]));
+      if(inertia<bestInertia){ bestInertia=inertia; best=res; }
+    }
+    const {labels, centroids} = best;
+    const sil = silhouetteScore(points, labels, APP.k);
+    APP.model = {type:'cluster', points, labels, centroids, sil};
+    document.getElementById('out5').textContent = `labels[:10] = [${labels.slice(0,10).join(' ')}]\nsilhouette_score = ${sil.toFixed(3)}`;
+    renderClusterEval();
+  }else{
+    const xsCols = numCols().filter(h=>h!==APP.target);
+    const rows = APP.rows.filter(r=> xsCols.every(h=>r[h]!=='' && !isNaN(parseFloat(r[h]))) && r[APP.target]!=='' && !isNaN(parseFloat(r[APP.target])));
+    const rnd = seeded(7);
+    const idx = [...Array(rows.length).keys()];
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+    const splitPct = parseInt(document.getElementById('splitRange').value)/100;
+    const cut = Math.floor(idx.length*splitPct);
+    const trainIdx = idx.slice(0,cut), testIdx = idx.slice(cut);
+    const Xall = rows.map(r=>xsCols.map(h=>parseFloat(r[h])));
+    const yall = rows.map(r=>parseFloat(r[APP.target]));
+    const Xtrain = trainIdx.map(i=>Xall[i]), ytrain = trainIdx.map(i=>yall[i]);
+    const Xtest = testIdx.map(i=>Xall[i]), ytest = testIdx.map(i=>yall[i]);
+    const fitres = fitRegression(Xtrain, ytrain);
+    const predTest = Xtest.map(r=> xsCols.map((h,j)=>(r[j]-fitres.stats[j].mean)/fitres.stats[j].std).reduce((s,v,j)=>s+v*fitres.w[j],0)+fitres.b);
+    const r2 = r2Score(ytest, predTest);
+    APP.model = {type:'regress', xsCols, fitres, Xtest, ytest, predTest, r2};
+    document.getElementById('out5').textContent = `학습 완료 (train n=${Xtrain.length}, test n=${Xtest.length})\ncoef = [${fitres.w.map(v=>v.toFixed(3)).join(', ')}]\nintercept = ${fitres.b.toFixed(3)}`;
+    renderRegressEval();
+  }
+  document.getElementById('step-6').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderClusterEval(){
+  const {points, labels, sil} = APP.model;
+  const palette = ['#2a78d6','#eda100','#e87ba4','#008300','#4a3aa7'];
+  const counts = new Array(APP.k).fill(0);
+  labels.forEach(l=>counts[l]++);
+  const xmin=Math.min(...points.map(p=>p[0])), xmax=Math.max(...points.map(p=>p[0]));
+  const ymin=Math.min(...points.map(p=>p[1])), ymax=Math.max(...points.map(p=>p[1]));
+  const W=320,H=220,pad=30;
+  const sx=x=>pad+(x-xmin)/(xmax-xmin||1)*(W-pad*1.5);
+  const sy=y=>H-pad-(y-ymin)/(ymax-ymin||1)*(H-pad*1.5);
+  let dots=''; points.forEach((p,i)=>{ dots += `<circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="3" fill="${palette[labels[i]%5]}" opacity="0.85"/>`; });
+
+  let rows='';
+  for(let c=0;c<APP.k;c++){
+    rows += `<div class="cluster-row"><div class="cluster-dot" style="background:${palette[c%5]}"></div><div class="flex-1 text-sm text-gray-800">군집 ${c+1}</div><div class="font-mono text-xs text-gray-500">n=${counts[c]}</div></div>`;
+  }
+
+  document.getElementById('evalBox').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat"><dt>실루엣 점수</dt><dd>${sil.toFixed(3)}</dd></div>
+      <div class="stat"><dt>군집 수</dt><dd>${APP.k}</dd></div>
+      <div class="stat"><dt>전체 표본</dt><dd>${points.length}</dd></div>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <div><h4 class="font-bold text-gray-900 text-sm mb-2">군집별 표본 수</h4>${rows}</div>
+      <div><h4 class="font-bold text-gray-900 text-sm mb-2">군집 산점도 (${esc(APP.cxCol)} × ${esc(APP.cyCol)})</h4>
+        <svg viewBox="0 0 ${W} ${H}" class="w-full"><line x1="${pad}" y1="${H-pad}" x2="${W-8}" y2="${H-pad}" stroke="#e5e7eb"/><line x1="${pad}" y1="8" x2="${pad}" y2="${H-pad}" stroke="#e5e7eb"/>${dots}</svg>
+      </div>
+    </div>
+    <p class="text-xs text-gray-400 mt-4">실루엣 점수는 -1~1 사이이며, 1에 가까울수록 군집이 잘 나뉜 것입니다.</p>`;
+}
+function renderRegressEval(){
+  const {ytest, predTest, r2} = APP.model;
+  const xmin=Math.min(...ytest), xmax=Math.max(...ytest);
+  const W=320,H=220,pad=30;
+  const s = v => pad + (v-xmin)/(xmax-xmin||1) * (W-pad*1.5);
+  let dots=''; ytest.forEach((y,i)=>{ dots += `<circle cx="${s(y).toFixed(1)}" cy="${(H-pad-(predTest[i]-xmin)/(xmax-xmin||1)*(H-pad*1.5)).toFixed(1)}" r="3" fill="#7c3aed" opacity="0.7"/>`; });
+  const mae = mean(ytest.map((y,i)=>Math.abs(y-predTest[i])));
+  const rmse = Math.sqrt(mean(ytest.map((y,i)=>(y-predTest[i])**2)));
+  document.getElementById('evalBox').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat"><dt>결정계수 R²</dt><dd>${r2.toFixed(3)}</dd></div>
+      <div class="stat"><dt>MAE</dt><dd>${mae.toFixed(2)}</dd></div>
+      <div class="stat"><dt>RMSE</dt><dd>${rmse.toFixed(2)}</dd></div>
+    </div>
+    <div class="mt-6"><h4 class="font-bold text-gray-900 text-sm mb-2">예측값 vs 실제값 (평가 데이터)</h4>
+      <svg viewBox="0 0 ${W} ${H}" class="w-full"><line x1="${pad}" y1="${H-pad}" x2="${W-8}" y2="${H-pad}" stroke="#e5e7eb"/><line x1="${pad}" y1="8" x2="${pad}" y2="${H-pad}" stroke="#e5e7eb"/><line x1="${pad}" y1="${H-pad}" x2="${W-8}" y2="8" stroke="#c4b5fd" stroke-dasharray="4 3"/>${dots}</svg>
+      <p class="text-xs text-gray-400 mt-2">점선(y=x)에 가까울수록 예측이 정확합니다.</p>
+    </div>`;
+}
+
+/* ══════════════════ 스텝 내비게이션 ══════════════════ */
+const STEPS = [['step-0','문제 정의'],['step-1','수집'],['step-2','전처리'],['step-3','EDA'],['step-4','모델링'],['step-5','학습'],['step-6','평가'],['step-7','활용']];
+function renderStepnav(){
+  const nav = document.getElementById('stepnav');
+  nav.innerHTML = STEPS.map((s,i)=>`<button class="step-pill" data-id="${s[0]}" onclick="document.getElementById('${s[0]}').scrollIntoView({behavior:'smooth',block:'start'})"><b>${i}</b>${s[1]}</button>`).join('');
+}
+function copyCode(btn){
+  const pre = btn.closest('div').nextElementSibling.querySelector('pre');
+  navigator.clipboard?.writeText(pre.innerText);
+  btn.textContent = '복사됨!'; setTimeout(()=>btn.textContent='복사', 1200);
+}
+
+/* ══════════════════ 전체 렌더 ══════════════════ */
+function renderAll(){
+  renderPreview();
+  renderTargetSelect();
+  renderNormChips();
+  renderHistChips();
+  renderHeat();
+  selectModel('cluster');
+}
+renderStepnav();
+const parsed = parseCSV(MALL_CSV);
+loadData(parsed.headers, parsed.rows);
+
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('.step-pill').forEach(p=>p.classList.toggle('on', p.dataset.id===e.target.id)); } });
+}, {rootMargin:'-30% 0px -55% 0px'});
+document.querySelectorAll('main section[id^="step-"]').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
